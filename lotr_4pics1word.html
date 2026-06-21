@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>One Word to Rule Them All</title>
+<style>
+  :root{
+    --gold:#d4af37;
+    --gold-bright:#f4d56a;
+    --bg-dark:#0b0d08;
+    --bg-panel:#15170f;
+    --ring-glow: 0 0 20px rgba(212,175,55,.7);
+    --green:#3a7d44;
+    --red:#8b2e2e;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; min-height:100vh;
+    font-family:'Trebuchet MS', 'Palatino Linotype', serif;
+    background:
+      radial-gradient(ellipse at 50% -10%, #2a2310 0%, #0b0d08 55%),
+      linear-gradient(180deg,#0b0d08,#060704 60%, #000 100%);
+    color:#eee2c2;
+    overflow-x:hidden;
+    position:relative;
+  }
+
+  /* ---------- floating ember / dust particles ---------- */
+  #particles{
+    position:fixed; inset:0; pointer-events:none; z-index:0; overflow:hidden;
+  }
+  .ember{
+    position:absolute; bottom:-10px; width:4px; height:4px; border-radius:50%;
+    background:radial-gradient(circle, var(--gold-bright), transparent 70%);
+    opacity:.8; animation:rise linear infinite;
+  }
+  @keyframes rise{
+    0%{ transform:translateY(0) translateX(0); opacity:0;}
+    10%{opacity:.9;}
+    100%{ transform:translateY(-110vh) translateX(var(--drift,20px)); opacity:0;}
+  }
+
+  /* ---------- header ---------- */
+  header{
+    position:relative; z-index:2; text-align:center; padding:28px 16px 10px;
+  }
+  h1{
+    font-family:'Luminari','Papyrus','Trebuchet MS', serif;
+    font-size:clamp(28px,5vw,52px);
+    letter-spacing:2px;
+    margin:0;
+    color:var(--gold-bright);
+    text-shadow: var(--ring-glow), 0 0 40px rgba(212,175,55,.3);
+    animation: titleGlow 4s ease-in-out infinite;
+  }
+  @keyframes titleGlow{
+    0%,100%{ text-shadow: var(--ring-glow), 0 0 40px rgba(212,175,55,.3);}
+    50%{ text-shadow: 0 0 35px rgba(244,213,106,1), 0 0 70px rgba(212,175,55,.6);}
+  }
+  .subtitle{
+    color:#b9ad84; font-size:14px; letter-spacing:3px; text-transform:uppercase;
+    margin-top:6px; opacity:.85;
+  }
+  .ring-divider{
+    width:90px; height:90px; margin:14px auto 0; position:relative;
+  }
+  .ring-divider::before{
+    content:"💍"; font-size:42px; display:block;
+    animation: spinRing 6s linear infinite;
+    filter: drop-shadow(0 0 10px gold);
+  }
+  @keyframes spinRing{
+    0%{ transform:rotateY(0deg) scale(1);}
+    50%{ transform:rotateY(180deg) scale(1.15);}
+    100%{ transform:rotateY(360deg) scale(1);}
+  }
+
+  /* ---------- top bar controls ---------- */
+  .topbar{
+    position:relative; z-index:2;
+    display:flex; justify-content:center; gap:10px; flex-wrap:wrap;
+    margin-top:8px;
+  }
+  .pill{
+    background:linear-gradient(160deg,#23230f,#181808);
+    border:1px solid #5a4d22;
+    color:var(--gold-bright);
+    padding:6px 14px; border-radius:20px; font-size:13px;
+    display:flex; align-items:center; gap:6px;
+    box-shadow: inset 0 0 8px rgba(0,0,0,.6);
+  }
+
+  /* ---------- main game card ---------- */
+  main{
+    position:relative; z-index:2;
+    max-width:720px; margin:24px auto 80px; padding:0 16px;
+  }
+  .game-card{
+    background: linear-gradient(160deg, var(--bg-panel), #0d0e08);
+    border:2px solid #4a3f1c;
+    border-radius:18px;
+    padding:22px;
+    box-shadow: 0 0 0 1px #000 inset, 0 20px 50px rgba(0,0,0,.6), 0 0 40px rgba(150,120,30,.08);
+    position:relative;
+    animation: cardIn .7s ease;
+  }
+  @keyframes cardIn{
+    from{ opacity:0; transform:translateY(30px) scale(.97);}
+    to{ opacity:1; transform:translateY(0) scale(1);}
+  }
+  .progress-row{
+    display:flex; justify-content:space-between; align-items:center;
+    margin-bottom:14px; font-size:13px; color:#cabb84;
+  }
+  .progress-bar{
+    flex:1; height:8px; margin:0 12px; border-radius:6px; overflow:hidden;
+    background:#1d1d10; border:1px solid #3a3318;
+  }
+  .progress-fill{
+    height:100%; width:0%; background:linear-gradient(90deg,#7a5d12,var(--gold-bright));
+    transition: width .6s ease; box-shadow:0 0 10px var(--gold);
+  }
+
+  /* ---------- pictures grid ---------- */
+  .pics-grid{
+    display:grid; grid-template-columns:1fr 1fr; gap:10px;
+    margin-bottom:18px;
+  }
+  .pic-tile{
+    aspect-ratio:1/1; border-radius:14px;
+    background: radial-gradient(circle at 30% 20%, #2a2818, #14130a 75%);
+    border:1px solid #4a3f1c;
+    display:flex; align-items:center; justify-content:center;
+    font-size:clamp(40px,9vw,64px);
+    position:relative; overflow:hidden;
+    box-shadow: inset 0 0 20px rgba(0,0,0,.7);
+    animation: tileAppear .6s ease backwards;
+    transition: transform .25s ease, box-shadow .25s ease;
+  }
+  .pic-tile:hover{ transform:translateY(-4px) scale(1.03); box-shadow: 0 8px 18px rgba(0,0,0,.5), var(--ring-glow); }
+  .pic-tile:nth-child(1){animation-delay:.05s;}
+  .pic-tile:nth-child(2){animation-delay:.15s;}
+  .pic-tile:nth-child(3){animation-delay:.25s;}
+  .pic-tile:nth-child(4){animation-delay:.35s;}
+  @keyframes tileAppear{
+    from{opacity:0; transform:scale(.7) rotate(-6deg);}
+    to{opacity:1; transform:scale(1) rotate(0);}
+  }
+  .pic-tile .cap{
+    position:absolute; bottom:4px; font-size:10px; color:#9a8c5e; letter-spacing:1px;
+  }
+  .pic-tile::after{
+    content:""; position:absolute; inset:0;
+    background:linear-gradient(120deg, transparent 40%, rgba(255,255,255,.07) 50%, transparent 60%);
+    background-size:250% 250%;
+    animation: shimmer 5s ease-in-out infinite;
+  }
+  @keyframes shimmer{
+    0%{ background-position: 200% 0;}
+    100%{ background-position: -50% 0;}
+  }
+
+  /* ---------- answer blanks ---------- */
+  .answer-row{
+    display:flex; justify-content:center; gap:8px; flex-wrap:wrap;
+    margin:18px 0;
+    min-height:54px;
+  }
+  .blank-slot{
+    width:42px; height:48px; border-radius:8px;
+    background:#161608; border-bottom:3px solid var(--gold);
+    display:flex; align-items:center; justify-content:center;
+    font-size:22px; font-weight:bold; color:var(--gold-bright);
+    box-shadow: inset 0 2px 6px rgba(0,0,0,.6);
+    transition: transform .15s ease, background .2s;
+    cursor:pointer;
+  }
+  .blank-slot.filled{
+    background:linear-gradient(160deg,#2c2810,#1c1808);
+    animation: pop .25s ease;
+  }
+  @keyframes pop{
+    0%{ transform:scale(.6);}
+    60%{ transform:scale(1.15);}
+    100%{ transform:scale(1);}
+  }
+
+  /* ---------- letter bank ---------- */
+  .letters-row{
+    display:flex; justify-content:center; gap:8px; flex-wrap:wrap;
+    margin:18px 0 6px;
+  }
+  .letter-btn{
+    width:44px; height:44px; border-radius:50%;
+    border:1px solid #5a4d22;
+    background: radial-gradient(circle at 35% 30%, #3a3318, #1c1a0d);
+    color:var(--gold-bright); font-size:18px; font-weight:bold;
+    cursor:pointer;
+    transition: transform .15s ease, opacity .2s, background .2s;
+    box-shadow: 0 3px 0 #2a230c, 0 5px 10px rgba(0,0,0,.5);
+  }
+  .letter-btn:hover:not(:disabled){ transform:translateY(-3px); background:radial-gradient(circle at 35% 30%, var(--gold), #6e5a16); color:#1a1604;}
+  .letter-btn:active:not(:disabled){ transform:translateY(1px); }
+  .letter-btn:disabled{ opacity:.15; cursor:default; }
+
+  /* ---------- action buttons ---------- */
+  .actions{
+    display:flex; justify-content:center; gap:10px; flex-wrap:wrap; margin-top:18px;
+  }
+  .btn{
+    padding:10px 18px; border-radius:10px; border:1px solid #5a4d22; cursor:pointer;
+    font-size:14px; letter-spacing:.5px; font-family:inherit;
+    background:linear-gradient(160deg,#2a2410,#171508); color:#e8dcae;
+    transition: transform .15s ease, box-shadow .2s;
+  }
+  .btn:hover{ transform:translateY(-2px); box-shadow:0 6px 16px rgba(0,0,0,.5), 0 0 14px rgba(212,175,55,.25);}
+  .btn:active{ transform:translateY(0); }
+  .btn.primary{ background:linear-gradient(160deg, var(--gold), #8a6f1c); color:#1a1604; font-weight:bold; }
+  .btn.danger{ border-color:#7a3a3a; }
+  .btn:disabled{ opacity:.4; cursor:default; transform:none; box-shadow:none;}
+
+  .hint-box{
+    margin-top:14px; text-align:center; min-height:22px;
+    color:#caa544; font-style:italic; font-size:14px;
+    animation: fadeIn .4s ease;
+  }
+  @keyframes fadeIn{ from{opacity:0;} to{opacity:1;} }
+
+  /* ---------- message flash ---------- */
+  .flash-msg{
+    text-align:center; font-size:18px; font-weight:bold; min-height:28px; margin-top:10px;
+  }
+  .flash-msg.success{ color:#7fdc7f; text-shadow:0 0 12px #2c7d2c; animation: bounceIn .5s ease;}
+  .flash-msg.fail{ color:#ff8a8a; text-shadow:0 0 12px #7d2c2c; animation: shake .4s ease;}
+  @keyframes bounceIn{
+    0%{ transform:scale(.5); opacity:0;}
+    60%{ transform:scale(1.2);}
+    100%{ transform:scale(1); opacity:1;}
+  }
+  @keyframes shake{
+    0%,100%{ transform:translateX(0);}
+    20%{ transform:translateX(-8px);}
+    40%{ transform:translateX(8px);}
+    60%{ transform:translateX(-6px);}
+    80%{ transform:translateX(6px);}
+  }
+
+  /* victory overlay */
+  #victoryOverlay{
+    position:fixed; inset:0; background:rgba(0,0,0,.85);
+    display:none; align-items:center; justify-content:center; z-index:50;
+    flex-direction:column; text-align:center; padding:20px;
+  }
+  #victoryOverlay h2{
+    font-size:clamp(28px,6vw,48px); color:var(--gold-bright);
+    text-shadow:0 0 30px gold; margin-bottom:10px;
+    animation: titleGlow 3s ease-in-out infinite;
+  }
+  #victoryOverlay p{ color:#e8dcae; max-width:480px; }
+
+  .confetti{
+    position:fixed; top:-20px; width:10px; height:16px; z-index:60; pointer-events:none;
+    animation: confettiFall linear forwards;
+  }
+  @keyframes confettiFall{
+    to{ transform: translateY(110vh) rotate(720deg); opacity:0.2;}
+  }
+
+  /* shake whole tile grid on wrong guess */
+  .shake-grid{ animation: shake .4s ease; }
+
+  footer{
+    position:relative; z-index:2; text-align:center; padding:20px; color:#7a6f4a; font-size:12px;
+  }
+
+  @media (max-width:480px){
+    .letter-btn{width:38px;height:38px;font-size:16px;}
+    .blank-slot{width:34px;height:40px;font-size:18px;}
+  }
+</style>
+</head>
+<body>
+
+<div id="particles"></div>
+
+<header>
+  <h1>One Word to Rule Them All</h1>
+  <div class="subtitle">A Four Pictures, One Word LOTR Challenge</div>
+  <div class="ring-divider"></div>
+</header>
+
+<div class="topbar">
+  <div class="pill">🏆 Score: <span id="scoreVal">0</span></div>
+  <div class="pill">🧩 Puzzle <span id="puzzleNum">1</span>/<span id="puzzleTotal">10</span></div>
+  <div class="pill" id="musicToggle" style="cursor:pointer;">🔇 Music Off</div>
+</div>
+
+<main>
+  <div class="game-card" id="gameCard">
+    <div class="progress-row">
+      <span id="streakLabel">Streak: 0</span>
+      <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+      <span id="hintsLeftLabel">Hints: 3</span>
+    </div>
+
+    <div class="pics-grid" id="picsGrid"></div>
+
+    <div class="answer-row" id="answerRow"></div>
+
+    <div class="letters-row" id="lettersRow"></div>
+
+    <div class="hint-box" id="hintBox"></div>
+    <div class="flash-msg" id="flashMsg"></div>
+
+    <div class="actions">
+      <button class="btn" id="hintBtn">💡 Hint</button>
+      <button class="btn danger" id="clearBtn">🧹 Clear</button>
+      <button class="btn primary" id="checkBtn">⚔️ Submit</button>
+      <button class="btn" id="skipBtn">⏭️ Skip</button>
+    </div>
+  </div>
+</main>
+
+<footer>Forged in the fires of HTML, CSS &amp; JavaScript — not affiliated with the Tolkien Estate.</footer>
+
+<div id="victoryOverlay">
+  <h2>🎉 The Quest is Complete! 🎉</h2>
+  <p id="victoryText">You have conquered every riddle of Middle-earth!</p>
+  <button class="btn primary" id="restartBtn" style="margin-top:18px;">Begin a New Journey</button>
+</div>
+
+<script>
+/* ================= AUDIO ENGINE (synthesized, no external files) ================= */
+const AudioEngine = (() => {
+  let ctx = null;
+  let musicOn = false;
+  let musicNodes = [];
+  let musicTimer = null;
+
+  function getCtx(){
+    if(!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)();
+    return ctx;
+  }
+
+  function blip(freq, dur=0.15, type='sine', vol=0.18, delay=0){
+    const c = getCtx();
+    const t0 = c.currentTime + delay;
+    const osc = c.createOscillator();
+    const gain = c.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, t0);
+    gain.gain.setValueAtTime(0, t0);
+    gain.gain.linearRampToValueAtTime(vol, t0 + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.001, t0 + dur);
+    osc.connect(gain).connect(c.destination);
+    osc.start(t0);
+    osc.stop(t0 + dur + 0.05);
+  }
+
+  function keyClick(){ blip(520 + Math.random()*80, 0.08, 'triangle', 0.12); }
+  function correct(){
+    blip(523.25,0.18,'sine',0.2,0);
+    blip(659.25,0.18,'sine',0.2,0.12);
+    blip(783.99,0.3,'sine',0.22,0.24);
+  }
+  function wrong(){
+    blip(180,0.25,'sawtooth',0.15,0);
+    blip(140,0.3,'sawtooth',0.15,0.1);
+  }
+  function victory(){
+    [523.25,659.25,783.99,1046.5,1318.5].forEach((f,i)=>blip(f,0.4,'triangle',0.2,i*0.15));
+  }
+  function hintSound(){
+    blip(880,0.2,'sine',0.15,0);
+    blip(1108.7,0.25,'sine',0.15,0.08);
+  }
+
+  // gentle ambient drone loop for "music"
+  function startMusic(){
+    if(musicOn) return;
+    musicOn = true;
+    const c = getCtx();
+    const baseFreqs = [98, 146.83, 196]; // low ambient drone (G2,D3,G3-ish)
+    musicNodes = baseFreqs.map((f,i)=>{
+      const osc = c.createOscillator();
+      const gain = c.createGain();
+      osc.type = i===0 ? 'sine' : 'triangle';
+      osc.frequency.value = f;
+      gain.gain.value = 0.0;
+      osc.connect(gain).connect(c.destination);
+      osc.start();
+      gain.gain.linearRampToValueAtTime(0.035 - i*0.008, c.currentTime + 2);
+      return {osc, gain};
+    });
+    // slow shimmer melody note plucks
+    musicTimer = setInterval(()=>{
+      if(!musicOn) return;
+      const scale = [220,246.94,261.63,293.66,329.63,392,440];
+      const f = scale[Math.floor(Math.random()*scale.length)];
+      blip(f, 1.6, 'sine', 0.05, 0);
+    }, 2600);
+  }
+  function stopMusic(){
+    musicOn = false;
+    musicNodes.forEach(n=>{
+      try{
+        n.gain.gain.linearRampToValueAtTime(0, getCtx().currentTime + 1);
+        n.osc.stop(getCtx().currentTime + 1.1);
+      }catch(e){}
+    });
+    musicNodes = [];
+    if(musicTimer){ clearInterval(musicTimer); musicTimer = null; }
+  }
+  function toggleMusic(){
+    if(musicOn){ stopMusic(); return false; }
+    else { startMusic(); return true; }
+  }
+
+  return { keyClick, correct, wrong, victory, hintSound, toggleMusic, get isOn(){return musicOn;} };
+})();
+
+/* ================= PARTICLES ================= */
+(function spawnEmbers(){
+  const container = document.getElementById('particles');
+  const count = 35;
+  for(let i=0;i<count;i++){
+    const e = document.createElement('div');
+    e.className = 'ember';
+    const left = Math.random()*100;
+    const dur = 6 + Math.random()*10;
+    const delay = Math.random()*10;
+    const drift = (Math.random()*60-30) + 'px';
+    e.style.left = left+'vw';
+    e.style.animationDuration = dur+'s';
+    e.style.animationDelay = delay+'s';
+    e.style.setProperty('--drift', drift);
+    e.style.opacity = (0.3 + Math.random()*0.5).toString();
+    container.appendChild(e);
+  }
+})();
+
+/* ================= PUZZLE DATA ================= */
+// Each puzzle: word answer, 4 emoji "pictures" representing clues, and a hint sentence.
+const PUZZLES = [
+  { word:"RING", pics:["💍","🔥","👁️","🤏"], hint:"One to rule them all, found in the fires of Mount Doom." },
+  { word:"HOBBIT", pics:["🦶","🏡","🍞","🌿"], hint:"Small folk of the Shire who love a second breakfast." },
+  { word:"SHIRE", pics:["🏡","🌻","🍂","🍻"], hint:"The peaceful green homeland of the Hobbits." },
+  { word:"SWORD", pics:["⚔️","🛡️","✨","🗡️"], hint:"A blade that glows blue when orcs are near." },
+  { word:"TOWER", pics:["🗼","👁️","🔥","🌋"], hint:"A dark fortress topped with a fiery, watching eye." },
+  { word:"ELF", pics:["🏹","🌲","✨","👂"], hint:"An immortal archer who dwells among ancient trees." },
+  { word:"DRAGON", pics:["🐉","🔥","💰","🏔️"], hint:"A fire-breathing beast that hoards treasure in a mountain." },
+  { word:"WIZARD", pics:["🧙","⚡","🪄","🌟"], hint:"A grey (or white) traveler wielding a staff and ancient magic." },
+  { word:"MOUNTAIN", pics:["⛰️","🌋","❄️","🪨"], hint:"A towering peak one must cross or tunnel beneath." },
+  { word:"BATTLE", pics:["⚔️","🛡️","🏰","💥"], hint:"A great clash of armies fought before the gates." }
+];
+
+/* shuffle puzzle order each playthrough */
+function shuffle(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]] = [a[j],a[i]];
+  }
+  return a;
+}
+
+let order = shuffle(PUZZLES.map((_,i)=>i));
+let current = 0;
+let score = 0;
+let streak = 0;
+let hintsLeft = 3;
+let selected = []; // array of {char, btnEl}
+let solvedHintRevealed = new Set(); // indices revealed via hint for current puzzle
+
+const els = {
+  scoreVal: document.getElementById('scoreVal'),
+  puzzleNum: document.getElementById('puzzleNum'),
+  puzzleTotal: document.getElementById('puzzleTotal'),
+  streakLabel: document.getElementById('streakLabel'),
+  hintsLeftLabel: document.getElementById('hintsLeftLabel'),
+  progressFill: document.getElementById('progressFill'),
+  picsGrid: document.getElementById('picsGrid'),
+  answerRow: document.getElementById('answerRow'),
+  lettersRow: document.getElementById('lettersRow'),
+  hintBox: document.getElementById('hintBox'),
+  flashMsg: document.getElementById('flashMsg'),
+  hintBtn: document.getElementById('hintBtn'),
+  clearBtn: document.getElementById('clearBtn'),
+  checkBtn: document.getElementById('checkBtn'),
+  skipBtn: document.getElementById('skipBtn'),
+  gameCard: document.getElementById('gameCard'),
+  musicToggle: document.getElementById('musicToggle'),
+  victoryOverlay: document.getElementById('victoryOverlay'),
+  victoryText: document.getElementById('victoryText'),
+  restartBtn: document.getElementById('restartBtn')
+};
+
+els.puzzleTotal.textContent = PUZZLES.length;
+
+function buildLetterPool(word){
+  const letters = word.split('');
+  // add some decoy letters from a Middle-earth-flavored pool
+  const decoyPool = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split('').filter(c=>!letters.includes(c));
+  const decoysNeeded = Math.max(4, 10 - letters.length);
+  const decoys = shuffle(decoyPool).slice(0, decoysNeeded);
+  return shuffle(letters.concat(decoys));
+}
+
+function loadPuzzle(){
+  const idx = order[current];
+  const puzzle = PUZZLES[idx];
+  selected = [];
+  solvedHintRevealed.clear();
+  els.hintBox.textContent = "";
+  els.flashMsg.textContent = "";
+  els.flashMsg.className = "flash-msg";
+  els.puzzleNum.textContent = current+1;
+  els.progressFill.style.width = ((current)/PUZZLES.length*100)+"%";
+  els.streakLabel.textContent = "Streak: "+streak;
+  els.hintsLeftLabel.textContent = "Hints: "+hintsLeft;
+
+  // pics
+  els.picsGrid.innerHTML = "";
+  puzzle.pics.forEach((p)=>{
+    const tile = document.createElement('div');
+    tile.className = 'pic-tile';
+    tile.textContent = p;
+    els.picsGrid.appendChild(tile);
+  });
+
+  // answer blanks
+  els.answerRow.innerHTML = "";
+  puzzle.word.split('').forEach((ch, i)=>{
+    const slot = document.createElement('div');
+    slot.className = 'blank-slot';
+    slot.dataset.index = i;
+    slot.addEventListener('click', ()=>removeLetterAt(i));
+    els.answerRow.appendChild(slot);
+  });
+
+  // letter bank
+  const pool = buildLetterPool(puzzle.word);
+  els.lettersRow.innerHTML = "";
+  pool.forEach((ch)=>{
+    const btn = document.createElement('button');
+    btn.className = 'letter-btn';
+    btn.textContent = ch;
+    btn.addEventListener('click', ()=>pickLetter(ch, btn));
+    els.lettersRow.appendChild(btn);
+  });
+
+  els.checkBtn.disabled = false;
+  els.hintBtn.disabled = hintsLeft <= 0;
+}
+
+function pickLetter(ch, btnEl){
+  const puzzle = PUZZLES[order[current]];
+  if(selected.length >= puzzle.word.length) return;
+  AudioEngine.keyClick();
+  selected.push({char:ch, btnEl});
+  btnEl.disabled = true;
+  renderAnswer();
+}
+
+function removeLetterAt(i){
+  if(i >= selected.length) return;
+  const removed = selected.splice(i);
+  removed.forEach(item => { if(item.btnEl) item.btnEl.disabled = false; });
+  AudioEngine.keyClick();
+  renderAnswer();
+}
+
+function renderAnswer(){
+  const slots = els.answerRow.querySelectorAll('.blank-slot');
+  slots.forEach((slot, i)=>{
+    if(selected[i]){
+      slot.textContent = selected[i].char;
+      slot.classList.add('filled');
+    } else {
+      slot.textContent = "";
+      slot.classList.remove('filled');
+    }
+  });
+}
+
+function clearAnswer(){
+  selected.forEach(item => { if(item.btnEl) item.btnEl.disabled = false; });
+  selected = [];
+  renderAnswer();
+  AudioEngine.keyClick();
+}
+
+function checkAnswer(){
+  const puzzle = PUZZLES[order[current]];
+  const guess = selected.map(s=>s.char).join('');
+  if(guess.length !== puzzle.word.length){
+    flashFail("Fill in all the letters first!");
+    return;
+  }
+  if(guess === puzzle.word){
+    AudioEngine.correct();
+    score += Math.max(10, 30 - hintUsedPenalty());
+    streak += 1;
+    els.scoreVal.textContent = score;
+    flashSuccess("Correct! '" + puzzle.word + "' — well guessed, traveler!");
+    burstConfettiAt(els.gameCard);
+    els.checkBtn.disabled = true;
+    setTimeout(nextPuzzle, 1300);
+  } else {
+    AudioEngine.wrong();
+    streak = 0;
+    els.streakLabel.textContent = "Streak: 0";
+    flashFail("Not quite... the shadows misled you. Try again!");
+    els.gameCard.classList.add('shake-grid');
+    setTimeout(()=>els.gameCard.classList.remove('shake-grid'), 400);
+  }
+}
+
+let hintsUsedThisPuzzle = 0;
+function hintUsedPenalty(){ return hintsUsedThisPuzzle * 5; }
+
+function flashSuccess(msg){
+  els.flashMsg.textContent = msg;
+  els.flashMsg.className = "flash-msg success";
+}
+function flashFail(msg){
+  els.flashMsg.textContent = msg;
+  els.flashMsg.className = "flash-msg fail";
+}
+
+function useHint(){
+  if(hintsLeft <= 0) return;
+  const puzzle = PUZZLES[order[current]];
+  hintsLeft -= 1;
+  hintsUsedThisPuzzle += 1;
+  els.hintsLeftLabel.textContent = "Hints: "+hintsLeft;
+  els.hintBtn.disabled = hintsLeft <= 0;
+  AudioEngine.hintSound();
+
+  // First hint: show riddle text. Subsequent hints: reveal a letter.
+  if(!els.hintBox.dataset.shown){
+    els.hintBox.textContent = "📜 " + puzzle.hint;
+    els.hintBox.dataset.shown = "1";
+  } else {
+    // reveal a random unfilled correct letter into the first empty slot
+    const slots = els.answerRow.querySelectorAll('.blank-slot');
+    let emptyIndex = -1;
+    for(let i=0;i<puzzle.word.length;i++){
+      if(!selected[i]){ emptyIndex = i; break; }
+    }
+    if(emptyIndex === -1){ return; }
+    const correctChar = puzzle.word[emptyIndex];
+    // find a matching unused button
+    const btns = Array.from(els.lettersRow.children).filter(b=>!b.disabled && b.textContent === correctChar);
+    if(btns.length){
+      pickLetter(correctChar, btns[0]);
+      els.hintBox.textContent = "📜 " + puzzle.hint + "  (a letter has been revealed)";
+    }
+  }
+}
+
+function nextPuzzle(){
+  current += 1;
+  hintsUsedThisPuzzle = 0;
+  delete els.hintBox.dataset.shown;
+  if(current >= PUZZLES.length){
+    showVictory();
+    return;
+  }
+  loadPuzzle();
+}
+
+function skipPuzzle(){
+  AudioEngine.wrong();
+  streak = 0;
+  flashFail("Skipped. The path continues...");
+  setTimeout(nextPuzzle, 700);
+}
+
+function showVictory(){
+  els.progressFill.style.width = "100%";
+  AudioEngine.victory();
+  els.victoryText.textContent = "You scored " + score + " points across " + PUZZLES.length + " riddles of Middle-earth!";
+  els.victoryOverlay.style.display = "flex";
+  burstConfettiFullScreen();
+}
+
+function restartGame(){
+  order = shuffle(PUZZLES.map((_,i)=>i));
+  current = 0; score = 0; streak = 0; hintsLeft = 3; hintsUsedThisPuzzle = 0;
+  els.scoreVal.textContent = score;
+  els.victoryOverlay.style.display = "none";
+  loadPuzzle();
+}
+
+/* ---------- confetti effect ---------- */
+const confettiColors = ['#d4af37','#f4d56a','#8b2e2e','#3a7d44','#eee2c2'];
+function burstConfettiAt(targetEl){
+  const rect = targetEl.getBoundingClientRect();
+  for(let i=0;i<24;i++){
+    const c = document.createElement('div');
+    c.className = 'confetti';
+    c.style.left = (rect.left + rect.width/2 + (Math.random()*200-100)) + 'px';
+    c.style.top = (rect.top) + 'px';
+    c.style.background = confettiColors[Math.floor(Math.random()*confettiColors.length)];
+    c.style.animationDuration = (1.5 + Math.random()*1.5) + 's';
+    c.style.transform = `rotate(${Math.random()*360}deg)`;
+    document.body.appendChild(c);
+    setTimeout(()=>c.remove(), 3200);
+  }
+}
+function burstConfettiFullScreen(){
+  for(let i=0;i<80;i++){
+    setTimeout(()=>{
+      const c = document.createElement('div');
+      c.className = 'confetti';
+      c.style.left = Math.random()*100 + 'vw';
+      c.style.top = '-20px';
+      c.style.background = confettiColors[Math.floor(Math.random()*confettiColors.length)];
+      c.style.animationDuration = (2 + Math.random()*2) + 's';
+      document.body.appendChild(c);
+      setTimeout(()=>c.remove(), 4200);
+    }, i*30);
+  }
+}
+
+/* ---------- music toggle ---------- */
+els.musicToggle.addEventListener('click', ()=>{
+  const on = AudioEngine.toggleMusic();
+  els.musicToggle.textContent = on ? "🔊 Music On" : "🔇 Music Off";
+});
+
+/* ---------- wire up buttons ---------- */
+els.hintBtn.addEventListener('click', useHint);
+els.clearBtn.addEventListener('click', clearAnswer);
+els.checkBtn.addEventListener('click', checkAnswer);
+els.skipBtn.addEventListener('click', skipPuzzle);
+els.restartBtn.addEventListener('click', restartGame);
+
+/* init */
+loadPuzzle();
+</script>
+</body>
+</html>
